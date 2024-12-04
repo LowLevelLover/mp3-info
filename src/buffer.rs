@@ -58,7 +58,7 @@ impl Buffer {
 
         result = (result & mask) >> (7 - ((self.pos as u32 + n - 1) as u8 % 8));
 
-        self.move_pos(n as isize);
+        self.move_pos(n as isize)?;
 
         Ok(result)
     }
@@ -72,9 +72,26 @@ impl Buffer {
         Ok(())
     }
 
-    pub fn move_pos(&mut self, n: isize) {
-        if self.pos as isize + n > 0 && self.pos as isize + n <= self.total_bits as isize {
+    pub fn move_pos(&mut self, n: isize) -> Result<(), ErrorType> {
+        if self.pos as isize + n >= 0 && self.pos as isize + n <= self.total_bits as isize {
             self.pos = (n + self.pos as isize) as usize;
+            return Ok(());
+        }
+
+        Err(ErrorType::OutOfIndex)
+    }
+
+    pub fn set_pos_next_frame(&mut self) -> Result<(), ErrorType> {
+        let mut bits = self.get_bits(15)?;
+        loop {
+            bits &= 0x7fff;
+            bits |= self.get_bits(1)? & 0b1;
+
+            if bits == 0x7ffd {
+                self.move_pos(-15)?;
+                break Ok(());
+            }
+            bits <<= 1;
         }
     }
 }

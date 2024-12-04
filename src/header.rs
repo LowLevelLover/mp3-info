@@ -45,6 +45,7 @@ pub struct Header {
     pub copy_right: bool,
     pub copy_of_original: bool,
     pub emphasis: u8,
+    pos: usize,
 }
 
 impl Display for Layer {
@@ -144,7 +145,7 @@ impl Header {
         let copy_of_original = (buffer.data[3 + index] & 0b100) >> 2 == 0;
         let emphasis = buffer.data[3 + index] & 0b11;
 
-        buffer.move_pos(32);
+        buffer.move_pos(32).unwrap();
 
         Self {
             sync_word,
@@ -161,11 +162,12 @@ impl Header {
             copy_right,
             copy_of_original,
             emphasis,
+            pos: buffer.pos - 32,
         }
     }
 
     pub fn get_bitrate(&self) -> Result<u16, error::ErrorType> {
-        if self.version == Version::MPEG1 && self.layer == Layer::Layer3 {
+        if self.version == Version::MPEG1 && self.layer == Layer::Layer3 && self.bitrate < 15 {
             return Ok(HALF_BITRATE_MPEG1_LAYER3[self.bitrate as usize] as u16 * 2);
         }
 
@@ -173,7 +175,7 @@ impl Header {
     }
 
     pub fn get_frequency(&self) -> Result<u16, error::ErrorType> {
-        if self.version == Version::MPEG1 {
+        if self.version == Version::MPEG1 && self.frequency < 3 {
             return Ok(FREQUENCY_MPEG1[self.frequency as usize]);
         }
 
@@ -239,6 +241,7 @@ mod test {
         assert_eq!(
             header,
             Header {
+                pos: buffer.pos - 32,
                 sync_word: 0xfff,
                 version: Version::MPEG1,
                 layer: Layer::Layer3,

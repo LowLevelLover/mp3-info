@@ -1,4 +1,4 @@
-use crate::{buffer::Buffer, side_info::SideInfo, Header};
+use crate::{buffer::Buffer, error::ErrorType, side_info::SideInfo, Header};
 
 #[derive(Debug)]
 pub struct Frame {
@@ -13,25 +13,24 @@ impl Frame {
         &self.header
     }
 
-    pub fn create_from_buffer(buffer: &mut Buffer) -> Self {
+    pub fn create_from_buffer(buffer: &mut Buffer) -> Result<Self, ErrorType> {
         let header = Header::create_from_buffer(buffer);
         let crc = if header.error_protection {
-            Some(buffer.get_bits(16).unwrap() as u16)
+            Some(buffer.get_bits(16)? as u16)
         } else {
             None
         };
 
-        let side_info = SideInfo::create_from_buffer(buffer, &header.mode).unwrap();
-        let length_byte = 144000
-            * (header.get_bitrate().unwrap() / header.get_frequency().unwrap()) as usize
+        let side_info = SideInfo::create_from_buffer(buffer, &header.mode)?;
+        let length_byte = 144000 * (header.get_bitrate()? / header.get_frequency()?) as usize
             + header.padding_bit as usize;
 
-        Self {
+        Ok(Self {
             header,
             crc,
             side_info,
             length_byte,
-        }
+        })
     }
 
     pub fn check_crc(&self) {

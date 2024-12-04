@@ -7,19 +7,42 @@ mod header;
 mod side_info;
 
 use buffer::Buffer;
+use error::ErrorType;
 use header::Header;
 
 use crate::frame::Frame;
 
 fn main() {
+    let mut frames: Vec<Frame> = Vec::new();
     let mut buffer = Buffer::create_buffer_from_file("mp3-examples/test_data_100kb.mp3");
-    buffer.set_pos(14192).unwrap();
 
-    let frame = Frame::create_from_buffer(&mut buffer);
-    if frame.header().validate_header().is_err() {
-        panic!("Header is not valid");
+    loop {
+        if let Err(err) = buffer.set_pos_next_frame() {
+            match err {
+                ErrorType::OutOfIndex => break,
+                _ => {
+                    eprintln!("pos {}: {:?}", buffer.pos, err);
+                    continue;
+                }
+            }
+        }
+
+        let pos = buffer.pos;
+        let frame = Frame::create_from_buffer(&mut buffer);
+
+        if let Err(err) = frame {
+            eprintln!("pos {}: {:?}", pos, err);
+            continue;
+        }
+
+        let pos = buffer.pos;
+        if let Err(err) = frame.as_ref().unwrap().header().validate_header() {
+            eprintln!("pos {}: {:?}", pos, err);
+            continue;
+        }
+
+        frames.push(frame.unwrap());
     }
 
-    println!("header: {}\n\n", &frame.header());
-    println!("{}\n\n", &frame.side_info);
+    println!("number of frames: {}", frames.len());
 }
