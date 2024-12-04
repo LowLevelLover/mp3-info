@@ -187,20 +187,19 @@ impl Display for Header {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
-            "
-    Version: {}
-    Layer: {}
-    Error Protection: {}
-    Bitrate: {}kb/sec
-    Frequency: {}Hz
-    Padding: {}
-    Set Private Bit: {}
-    Channel Mode: {}
-    Intensity Stereo: {}
-    M/S Stereo: {}
-    Copy Right: {},
-    Copy of Original: {},
-    emphasis: {},
+            " \t Version: {}
+\t Layer: {}
+\t Error Protection: {}
+\t Bitrate: {}kb/sec
+\t Frequency: {}Hz
+\t Padding: {}
+\t Set Private Bit: {}
+\t Channel Mode: {}
+\t Intensity Stereo: {}
+\t M/S Stereo: {}
+\t Copy Right: {},
+\t Copy of Original: {},
+\t emphasis: {},
             ",
             self.version,
             self.layer,

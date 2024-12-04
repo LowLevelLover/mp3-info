@@ -89,9 +89,9 @@ impl Granule {
 
 impl Display for SideInfo {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let main_data_begin = format!("main_data_begin: {:#x}\n", self.main_data_begin);
-        let private_bits = format!("private_bits: {:#8b}\n", self.private_bits);
-        let scfsi = format!("scfsi: {:#8b}\n", self.scfsi);
+        let main_data_begin = format!("\t main_data_begin: {:#x}\n", self.main_data_begin);
+        let private_bits = format!("\t private_bits: {:#8b}\n", self.private_bits);
+        let scfsi = format!("\t scfsi: {:#8b}\n", self.scfsi);
         let granule0 = format!("granule 0:\n{}\n", self.granules[0]);
         let granule1 = format!("granule 1:\n{}\n", self.granules[1]);
 

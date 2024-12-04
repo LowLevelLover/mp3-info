@@ -1,6 +1,6 @@
 use std::{fs, io::Read};
 
-use crate::error::ErrorType;
+use crate::{error::ErrorType, frame::Frame};
 
 pub struct Buffer {
     pub data: Vec<u8>,
@@ -93,6 +93,35 @@ impl Buffer {
             }
             bits <<= 1;
         }
+    }
+
+    pub fn extract_frames(&mut self) -> Vec<Frame> {
+        let mut frames: Vec<Frame> = Vec::new();
+
+        loop {
+            if let Err(err) = self.set_pos_next_frame() {
+                match err {
+                    ErrorType::OutOfIndex => break,
+                    _ => continue,
+                }
+            }
+
+            let pos = self.pos;
+            let frame = Frame::create_from_buffer(self);
+
+            if frame.is_err() {
+                continue;
+            }
+
+            let pos = self.pos;
+            if frame.as_ref().unwrap().header().validate_header().is_err() {
+                continue;
+            }
+
+            frames.push(frame.unwrap());
+        }
+
+        frames
     }
 }
 
